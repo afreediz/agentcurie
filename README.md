@@ -72,27 +72,9 @@ my_agent_card = AgentCard(
     persistent=True  # Keep the agent alive across invocations
 )
 ```
-
 ---
 
-### 3️⃣ Create and Configure the Supervisor
-
-The `SupervisorAgent` manages agents and tools and decides how to route tasks.
-
-```python
-from agentcurie import SupervisorAgent
-
-supervisor = SupervisorAgent(llm=llm)
-
-supervisor.register_agent(
-    agent_card=my_agent_card,
-    agent_class=CreativeAgent
-)
-```
-
----
-
-### 4️⃣ Register Supervisor-Level Tools
+### 3️⃣ Register Supervisor-Level Tools
 
 You can attach tools directly to the supervisor. These tools are available during task execution.
 
@@ -107,6 +89,23 @@ def get_weather(city: str):
         "Paris": "Partly cloudy, 20°C"
     }
     return weather_data.get(city, f"Weather data not available for {city}")
+```
+
+---
+
+### 4️⃣ Create and Configure the Supervisor
+
+The `SupervisorAgent` manages agents and tools and decides how to route tasks.
+
+```python
+from agentcurie import SupervisorAgent
+
+supervisor = SupervisorAgent(llm=llm)
+
+supervisor.register_agent(
+    agent_card=my_agent_card,
+    agent_class=CreativeAgent
+)
 ```
 
 ---
