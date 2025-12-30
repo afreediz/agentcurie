@@ -5,3 +5,4 @@ temp.*
 .env
 venv/
 .vscode/
+temp_*

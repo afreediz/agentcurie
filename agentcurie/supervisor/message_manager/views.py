@@ -25,6 +25,9 @@ class MessageHistory(BaseModel):
 	messages: List[ManagedMessage] = Field(default_factory=list)
 	total_tokens: int = 0
 
+	def get_last_message(self):
+		return self.messages[-1].message.content
+
 	def add_message(self, message: BaseMessage, metadata: MessageMetadata) -> None:
 		"""Add a message with metadata"""
 		self.messages.append(ManagedMessage(message=message, metadata=metadata))

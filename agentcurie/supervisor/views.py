@@ -75,9 +75,9 @@ class Hook(BaseModel):
 
 class FuncHook(Hook):
     """Executes given func with supervisor"""
-    func: Callable[['SupervisorAgent'], Awaitable[AgentResult]]
+    func: Callable[['SupervisorAgent'], Awaitable]
 
 class AgentHook(FuncHook):
     """Passes given agent as first param to func along with supervisor"""
     agent_name: str
-    func: Callable[['BaseAgent','SupervisorAgent'], Awaitable[AgentResult]]
+    func: Callable[['BaseAgent','SupervisorAgent'], Awaitable]

@@ -66,24 +66,24 @@ class SupervisorAgent(SuperVisor):
     async def prepare_agent(self, task) -> None:
         # update system prompt
         logger.info("\033[33m ---- CONTEXT INITIALIZING STARTED ---- \033[0m")
-        logger.info('updating system prompt')
-        system_prompt = SystemPrompt()
-        system_message = system_prompt.get_system_message(self.controller.get_prompt_description())
-        self.message_manager._add_message_with_tokens(system_message)
+        if len(self.message_manager.history.messages) == 0:
+            logger.info('updating system prompt')
+            system_prompt = SystemPrompt()
+            system_message = system_prompt.get_system_message(self.controller.get_prompt_description())
+            self.message_manager._add_message_with_tokens(system_message)
+            # update model schemas
+            logger.info('creating agent model')
+            AgentOutputModel = self.controller.create_choice_model()
+            self.AgentOutputModel = AgentOutputModel
+            self.AgentOutput = AgentOutput.type_with_custom_tools_and_agents(AgentOutputModel) #type:ignore
+
+            AgentOutputModelWithoutDone = self.controller.create_choice_model(exclude_tools=['done'])
+            self.AgentOutputModelWithoutDone = AgentOutputModelWithoutDone
+            self.AgentOutputWithoutDone = AgentOutput.type_with_custom_tools_and_agents(AgentOutputModelWithoutDone)
 
         # update task instructions
         logger.info('updating task instruction')
         self.message_manager.add_new_task(task)
-
-        # update model schemas
-        logger.info('creating agent model')
-        AgentOutputModel = self.controller.create_choice_model()
-        self.AgentOutputModel = AgentOutputModel
-        self.AgentOutput = AgentOutput.type_with_custom_tools_and_agents(AgentOutputModel) #type:ignore
-
-        AgentOutputModelWithoutDone = self.controller.create_choice_model(exclude_tools=['done'])
-        self.AgentOutputModelWithoutDone = AgentOutputModelWithoutDone
-        self.AgentOutputWithoutDone = AgentOutput.type_with_custom_tools_and_agents(AgentOutputModelWithoutDone)
         logger.info("\033[33m ---- CONTEXT INITIALIZING COMPLETED ---- \033[0m")
 
     async def _solve_query(self, message, agent_name) -> str:
@@ -130,6 +130,7 @@ class SupervisorAgent(SuperVisor):
 
             step = 1
             while True:
+                logger.info(f"Task : {task}")
                 logger.info(f"🪜 Step : {step}")
                 messages = self.message_manager.get_messages()
 
