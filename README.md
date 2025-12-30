@@ -74,11 +74,44 @@ my_agent_card = AgentCard(
 ```
 ---
 
-### 3️⃣ Register Supervisor-Level Tools
+### 3️⃣ Create and Configure the Supervisor
+
+The `SupervisorAgent` manages agents and tools and decides how to route tasks.
+
+```python
+from agentcurie import SupervisorAgent, FuncHook, AgentHook, BaseAgent
+
+# hooks with access to complete agent state
+async def intermediate_logger(supervisor:SupervisorAgent):
+    last_message = supervisor.message_manager.history.get_last_message()
+    print(last_message)
+
+async def child_agent_state_updater(child_agent:BaseAgent, supervisor:SupervisorAgent):
+    # state updating or custom logic
+    pass
+
+supervisor = SupervisorAgent(
+    llm=llm,
+    func_hooks=[
+        FuncHook(order='before', func=intermediate_logger)
+    ],
+    agent_hooks=[
+        AgentHook(order='after', agent_name='creative_agent', func=child_agent_state_updater)
+    ]
+)
+```
+
+---
+### 4️⃣ Register Child Agents and Supervisor-Level Tools
 
 You can attach tools directly to the supervisor. These tools are available during task execution.
 
 ```python
+supervisor.register_agent(
+    agent_card=my_agent_card,
+    agent_class=CreativeAgent
+)
+
 @supervisor.register_tool("Use to get weather details of any place")
 def get_weather(city: str):
     """Get current weather for a city (mock function)"""
@@ -92,24 +125,6 @@ def get_weather(city: str):
 ```
 
 ---
-
-### 4️⃣ Create and Configure the Supervisor
-
-The `SupervisorAgent` manages agents and tools and decides how to route tasks.
-
-```python
-from agentcurie import SupervisorAgent
-
-supervisor = SupervisorAgent(llm=llm)
-
-supervisor.register_agent(
-    agent_card=my_agent_card,
-    agent_class=CreativeAgent
-)
-```
-
----
-
 ### 5️⃣ Run the Supervisor
 
 Call `solve()` on the supervisor with a natural-language task. The supervisor will:
@@ -125,6 +140,7 @@ async def main():
     result = await supervisor.solve(
         "Check weather details of London, write a poem of the current weather"
     )
+    print(result)
     return result
 
 asyncio.run(main())
