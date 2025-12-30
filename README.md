@@ -96,7 +96,9 @@ supervisor = SupervisorAgent(
         FuncHook(order='before', func=intermediate_logger)
     ],
     agent_hooks=[
-        AgentHook(order='after', agent_name='creative_agent', func=child_agent_state_updater)
+        AgentHook(order='after', agent_name='creative_agent', 
+        func=child_agent_state_updater
+      )
     ]
 )
 ```
