@@ -7,3 +7,4 @@ venv/
 .vscode/
 temp_*
 dist/
+*.egg-info/
