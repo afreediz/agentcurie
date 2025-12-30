@@ -16,83 +16,6 @@ AgentCurie acts as a **master supervisor** that:
 
 ---
 
-## 📁 Code Structure
-
-AgentCurie follows a **feature-based modular architecture**, promoting:
-
-* Clear separation of concerns
-* Scalability for large systems
-* High testability and maintainability
-
-```
-feature_1/
-├── service.py       # Core business logic and orchestration
-├── views.py         # Pydantic models (request/response schemas)
-├── model.py         # Database or domain models
-├── test.py          # Feature-specific tests
-├── example/         # Usage examples and demos
-└── sub_feature/     # Optional nested features
-
-feature_2/
-├── ...
-```
-
-Each feature is **self-contained** and can evolve independently.
-
----
-
-## 🚀 Highlights
-
-* 🧩 **Multi-agent orchestration**
-  Seamlessly integrate and control agents from different frameworks.
-
-* 🧩 **Agent Queries**
-  Child agents can ask query/service back to supervisor which will temperorly hold the child agent till supervisor respond directly or by coordinating with other agents.  
-
-* 🧩 **Dynamic Initialisation and Persistance**
-  Child agents are initialised only when necessary and can be set to persist until completion.
-
-* 🧪 **Testable by design**
-  Every feature includes its own test suite.
-
-* 🛠️ **Agentic-compatible**
-  Designed to work naturally with modern LLM tools, planners, and controllers.
-
-* 🏗️ **Structured automation**
-  Clean separation between data models, business logic, and views.
-
----
-
-## 📂 Examples
-
-Each feature contains an `examples/` directory that demonstrates:
-
-* How to interact with the feature’s services
-* How agents are executed and coordinated
-* Typical usage patterns for the framework
-
-These examples are intended as both **learning resources** and **quick-start references**.
-
----
-
-## 🧭 Important Code Guide
-
-Key directories and their responsibilities:
-
-* `supervisor/`
-  Contains the implementation of the **master supervisor agent**, responsible for coordinating agents and tools across frameworks.
-
-* `controller/tool/`
-  Manages tool registration, execution, and lifecycle.
-
-* `controller/agent/`
-  Handles agent management and coordination logic.
-
-* `mcp_client/`
-  Converts MCP-compatible definitions into tools usable by the tool controller.
-
----
-
 ## ⚡ Quick Start
 
 This section shows how to get up and running with **AgentCurie** by creating a simple agent and supervising it.
@@ -218,6 +141,83 @@ asyncio.run(main())
 4. The agent processes the request and returns the final output
 
 This demonstrates how **AgentCurie acts as a central brain**, orchestrating agents and tools seamlessly.
+
+---
+
+## 📁 Code Structure
+
+AgentCurie follows a **feature-based modular architecture**, promoting:
+
+* Clear separation of concerns
+* Scalability for large systems
+* High testability and maintainability
+
+```
+feature_1/
+├── service.py       # Core business logic and orchestration
+├── views.py         # Pydantic models (request/response schemas)
+├── model.py         # Database or domain models
+├── test.py          # Feature-specific tests
+├── example/         # Usage examples and demos
+└── sub_feature/     # Optional nested features
+
+feature_2/
+├── ...
+```
+
+Each feature is **self-contained** and can evolve independently.
+
+---
+
+## 🚀 Highlights
+
+* 🧩 **Multi-agent orchestration**
+  Seamlessly integrate and control agents from different frameworks.
+
+* 🧩 **Agent Queries**
+  Child agents can ask query/service back to supervisor which will temperorly hold the child agent till supervisor respond directly or by coordinating with other agents.  
+
+* 🧩 **Dynamic Initialisation and Persistance**
+  Child agents are initialised only when necessary and can be set to persist until completion.
+
+* 🧪 **Testable by design**
+  Every feature includes its own test suite.
+
+* 🛠️ **Agentic-compatible**
+  Designed to work naturally with modern LLM tools, planners, and controllers.
+
+* 🏗️ **Structured automation**
+  Clean separation between data models, business logic, and views.
+
+---
+
+## 📂 Examples
+
+Each feature contains an `examples/` directory that demonstrates:
+
+* How to interact with the feature’s services
+* How agents are executed and coordinated
+* Typical usage patterns for the framework
+
+These examples are intended as both **learning resources** and **quick-start references**.
+
+---
+
+## 🧭 Important Code Guide
+
+Key directories and their responsibilities:
+
+* `supervisor/`
+  Contains the implementation of the **master supervisor agent**, responsible for coordinating agents and tools across frameworks.
+
+* `controller/tool/`
+  Manages tool registration, execution, and lifecycle.
+
+* `controller/agent/`
+  Handles agent management and coordination logic.
+
+* `mcp_client/`
+  Converts MCP-compatible definitions into tools usable by the tool controller.
 
 ---
 
