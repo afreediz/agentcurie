@@ -87,7 +87,7 @@ async def intermediate_logger(supervisor:SupervisorAgent):
     print(last_message)
 
 async def child_agent_state_updater(child_agent:BaseAgent, supervisor:SupervisorAgent):
-    # state updating or custom logic
+    # child state updating or custom logic
     pass
 
 supervisor = SupervisorAgent(
