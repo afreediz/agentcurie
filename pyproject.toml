@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentcurie"
+version = "0.1.0"
+description = "Multiagentic supervisory system"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+  { name="Afreedi Z", email="afreedisulfiker@gmail.com" }
+]
+dependencies = [
+  "requests>=2.28",
+  "langchain>=1.2.0",
+  "langchain"-core>=1.2.5",
+  "pydantic>=2.12.5"
+]
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/afreediz/agentcurie"
+Issues = "https://github.com/afreediz/agentcurie/issues"

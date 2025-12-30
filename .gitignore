@@ -6,3 +6,4 @@ temp.*
 venv/
 .vscode/
 temp_*
+dist/
