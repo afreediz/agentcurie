@@ -171,22 +171,22 @@ Each feature is **self-contained** and can evolve independently.
 
 ## 🚀 Highlights
 
-* 🧩 **Multi-agent orchestration**
+1. **Multi-agent orchestration**
   Seamlessly integrate and control agents from different frameworks.
 
-* 🧩 **Agent Queries**
+2. **Agent Queries**
   Child agents can ask query/service back to supervisor which will temperorly hold the child agent till supervisor respond directly or by coordinating with other agents.  
 
-* 🧩 **Dynamic Initialisation and Persistance**
+3. **Dynamic Initialisation and Persistance**
   Child agents are initialised only when necessary and can be set to persist until completion.
 
-* 🧪 **Testable by design**
+4. **Testable by design**
   Every feature includes its own test suite.
 
-* 🛠️ **Agentic-compatible**
+5. **Agentic-compatible**
   Designed to work naturally with modern LLM tools, planners, and controllers.
 
-* 🏗️ **Structured automation**
+5. **Structured automation**
   Clean separation between data models, business logic, and views.
 
 ---
