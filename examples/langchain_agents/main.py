@@ -2,7 +2,7 @@ import json
 import asyncio
 from agentcurie import SupervisorAgent
 from agentcurie import AgentCard
-from .env import config
+from examples.env import config
 from .agent1 import CreativeAgent
 from .agent2 import DBAgent
 from .agent2 import fake_db

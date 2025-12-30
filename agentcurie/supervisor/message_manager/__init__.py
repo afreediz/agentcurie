@@ -1,5 +1,5 @@
-from supervisor.message_manager.service import MessageManager
-from supervisor.message_manager.views import MessageHistory, ManagedMessage, MessageMetadata
+from .service import MessageManager
+from .views import MessageHistory, ManagedMessage, MessageMetadata
 
 __all__ = [
     "MessageManager",

@@ -1,6 +1,6 @@
-from controller.tool.service import Controller as ToolsController
-from controller.tool.registery.service import Registry as ToolsRegistry
-from controller.tool.views import ToolModel, ToolResult, AgentOutput as ToolGuidingAgentOutput
+from .service import Controller as ToolsController
+from .registery.service import Registry as ToolsRegistry
+from .views import ToolModel, ToolResult, AgentOutput as ToolGuidingAgentOutput
 
 __all__ = [
     'ToolsController',

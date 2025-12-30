@@ -11,10 +11,10 @@ from langchain_core.messages import (
 	ToolMessage,
 )
 
-from supervisor.message_manager.views import MessageHistory, MessageMetadata
-from supervisor.prompts import SystemPrompt
-from controller import AgentOutput
-from supervisor.utils import get_first_key_param
+from .views import MessageHistory, MessageMetadata
+from agentcurie.supervisor.prompts import SystemPrompt
+from agentcurie.controller import AgentOutput
+from agentcurie.supervisor.utils import get_first_key_param
 
 import logging
 logger = logging.getLogger(__name__)

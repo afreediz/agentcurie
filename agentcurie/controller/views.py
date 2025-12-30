@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, RootModel, Field, create_model
-from controller.tool.registery.views import ToolModel
-from controller.agent.registery.views import AgentModel
+from .tool.registery.views import ToolModel
+from .agent.registery.views import AgentModel
 from typing import Union, Type, Literal
 
 import logging
@@ -46,7 +46,7 @@ class AgentOutput(BaseModel):
 			try:
 				choice = self.action.choice.root.get_type()
 			except Exception as e:
-				choice = self.action.choice.get_type()
+				choice = self.action.choice.get_type() #type:ignore
 				
 			return choice
 		except Exception as e:

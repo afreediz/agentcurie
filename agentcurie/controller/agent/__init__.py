@@ -1,6 +1,6 @@
-from controller.agent.service import Controller as AgentsController
-from controller.agent.registery.views import AgentCard, BaseAgent, SuperVisor
-from controller.agent.views import AgentResult, AgentOutput, AgentModel
+from .service import Controller as AgentsController
+from .registery.views import AgentCard, BaseAgent, SuperVisor
+from .views import AgentResult, AgentOutput, AgentModel
 
 __all__ = [
     'AgentsController',

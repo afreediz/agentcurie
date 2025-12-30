@@ -4,11 +4,11 @@ from inspect import iscoroutinefunction, signature
 from typing import Any, Callable, Optional, Type, Literal
 
 from pydantic import BaseModel, Field, create_model, RootModel
-from controller.tool.registery.views import (
+from .views import (
 	ToolsRegistry,
 	RegisteredTool,
 )
-from controller.tool.views import ToolModel
+from agentcurie.controller.tool.views import ToolModel
 
 class Registry:
 	"""Service for registering and managing tools"""

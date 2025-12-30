@@ -1,6 +1,6 @@
-from supervisor import SupervisorAgent, AgentHook, FuncHook
-from supervisor.message_manager import MessageManager
-from controller import Controller, AgentsController, ToolsController, AgentCard, BaseAgent
+from agentcurie.supervisor import SupervisorAgent, AgentHook, FuncHook
+from agentcurie.supervisor.message_manager import MessageManager
+from agentcurie.controller import Controller, AgentsController, ToolsController, AgentCard, BaseAgent
 
 __all__ = [
     'SupervisorAgent',

@@ -1,16 +1,14 @@
 # type: ignore
-import asyncio
-from inspect import iscoroutinefunction, signature
-from typing import Any, Callable, Dict, Type
+from typing import Dict, Type
 
 from pydantic import BaseModel, Field, create_model, RootModel
-from controller.agent.registery.views import (
+from .views import (
 	AgentsRegistry,
 	RegisteredAgent,
 	AgentCard
 )
-from controller.agent.registery.views import BaseAgent, RegisteredAgent
-from controller.agent.views import AgentModel
+from .views import BaseAgent, RegisteredAgent
+from .views import AgentModel
 
 class Registry:
 	"""Service for registering and managing agents"""

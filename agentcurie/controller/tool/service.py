@@ -1,9 +1,9 @@
 # TOOLS CONTROLLER LOGIC
 from pydantic import BaseModel
 from typing import TypeVar
-from controller.tool.registery.service import Registry
-from controller.tool.views import ToolModel, ToolResult
-from controller.tool.tool_views import Done
+from .registery.service import Registry
+from .views import ToolModel, ToolResult
+from .tool_views import Done
 
 T = TypeVar('T', bound=BaseModel)
 

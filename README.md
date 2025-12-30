@@ -1,45 +1,98 @@
-# Generative Process Automation (GPA)
+# AgentCurie
 
-GPA (Generative Process Automation) is a modular framework designed to automate agentic tasks using structured, scalable patterns. It draws inspiration from advanced browser-based agentic architectures and employs a format reminiscent of Netflix's Dispatcher design.
+AgentCurie is a **supervisor agentic framework** designed to control and coordinate agents built with multiple frameworks.
 
-## 🧠 Core Inspiration
+The name is inspired by **Maria Salomea Skłodowska-Curie**, the only person to have received Nobel Prizes in two different scientific fields. Similarly, AgentCurie is capable of supervising and orchestrating agents originating from different ecosystems.
 
-This framework is inspired by **browser-use agentic architecture**, which has been shown to outperform many other agentic systems in terms of planning, tool usage, and structured task execution.
+---
+
+## 🎯 Purpose
+
+AgentCurie acts as a **master supervisor** that:
+
+* Manages multiple agents, even if they are built using different frameworks
+* Coordinates tools, agents, and execution flow
+* Provides a structured, extensible foundation for agentic systems
+
+---
 
 ## 📁 Code Structure
 
-GPA adopts a **feature-based modular design**, encouraging separation of concerns, scalability, and testability.
+AgentCurie follows a **feature-based modular architecture**, promoting:
+
+* Clear separation of concerns
+* Scalability for large systems
+* High testability and maintainability
 
 ```
 feature_1/
 ├── service.py       # Core business logic and orchestration
 ├── views.py         # Pydantic models (request/response schemas)
-├── model.py         # Database models
-├── test.py          # Module-specific tests
-├── example/         # Working examples and usage guides
+├── model.py         # Database or domain models
+├── test.py          # Feature-specific tests
+├── example/         # Usage examples and demos
 └── sub_feature/     # Optional nested features
+
 feature_2/
 ├── ...
 ```
 
-## 🚀 Highlights
-
-- 🧩 **Feature-oriented**: Each domain feature is isolated and self-contained.
-- 🧪 **Testable by design**: Every feature includes its own test suite.
-- 🛠️ **Agentic-compatible**: Built for integration with modern LLM tools and controllers.
-- 🏗️ **Structured automation**: Clear separation of data models, logic, and views.
-
-## 📂 Examples
-
-Each module has a corresponding `example/` folder showcasing how to interact with its services or simulate agent execution.
+Each feature is **self-contained** and can evolve independently.
 
 ---
 
-## Important code guides:
-- supervisor/ : contains implemenation of master agent which can control agents and tools from any framework
-- controller/tool : contains tools manager
-- controller/agent : contains agents manager
-- gpa/ : contains an example of using multiple agents and framework with supervisor
-- infra/ : contains configurations, db and other service managers
-- mcp_client/ : contains logic to convert mcp to tools for tools controller
-- recorder/ : contains recorder engine from gpa which can execute browser task with json
+## 🚀 Highlights
+
+* 🧩 **Multi-agent orchestration**
+  Seamlessly integrate and control agents from different frameworks.
+
+* 🧩 **Feature-oriented design**
+  Each domain feature is isolated, improving clarity and maintainability.
+
+* 🧪 **Testable by design**
+  Every feature includes its own test suite.
+
+* 🛠️ **Agentic-compatible**
+  Designed to work naturally with modern LLM tools, planners, and controllers.
+
+* 🏗️ **Structured automation**
+  Clean separation between data models, business logic, and views.
+
+---
+
+## 📂 Examples
+
+Each feature contains an `example/` directory that demonstrates:
+
+* How to interact with the feature’s services
+* How agents are executed and coordinated
+* Typical usage patterns for the framework
+
+These examples are intended as both **learning resources** and **quick-start references**.
+
+---
+
+## 🧭 Important Code Guide
+
+Key directories and their responsibilities:
+
+* `supervisor/`
+  Contains the implementation of the **master supervisor agent**, responsible for coordinating agents and tools across frameworks.
+
+* `controller/tool/`
+  Manages tool registration, execution, and lifecycle.
+
+* `controller/agent/`
+  Handles agent management, routing, and coordination logic.
+
+* `mcp_client/`
+  Converts MCP-compatible definitions into tools usable by the tool controller.
+
+* `examples/`
+  Provides complete, end-to-end examples demonstrating how to use AgentCurie in real scenarios.
+
+---
+
+## 🔮 Vision
+
+AgentCurie is designed as a **framework-agnostic control layer** for the future of agentic systems—where multiple agents, tools, and reasoning engines collaborate under a single, well-structured supervisor.

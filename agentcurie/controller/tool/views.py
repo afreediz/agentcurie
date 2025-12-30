@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, create_model, Field
 from typing import Optional
-from controller.tool.registery.views import ToolModel
+from .registery.views import ToolModel
 
 class ToolResult(BaseModel):
     """Result of executing an action"""		

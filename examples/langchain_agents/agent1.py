@@ -6,7 +6,7 @@ Requires: pip install langchain langchain-anthropic
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
-from .env import config
+from examples.env import config
 from agentcurie import BaseAgent
 
 @tool

@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field, create_model
-from controller.agent.registery.views import AgentModel
-from typing import Optional
+from .registery.views import AgentModel
 
 class AgentResult(BaseModel):
     """Result of executing an agent"""		

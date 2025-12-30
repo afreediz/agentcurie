@@ -1,12 +1,9 @@
 # AGENT CONTROLLER LOGIC
 from pydantic import BaseModel
 from typing import Any, TypeVar, Type, Optional
-from controller.agent.registery.service import Registry
-from controller.tool.tool_views import Done
-from typing import Callable
-from controller.agent.views import AgentResult
-from controller.agent.registery.views import AgentCard, AgentModel, BaseAgent
-from typing import Awaitable
+from .registery.service import Registry
+from .views import AgentResult
+from .registery.views import AgentCard, AgentModel, BaseAgent
 from langchain_openai.chat_models.base import BaseChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 

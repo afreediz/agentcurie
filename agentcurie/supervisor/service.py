@@ -1,17 +1,16 @@
-from controller import Controller, AgentOutput, ChoiceResult, ChoiceModel, BaseAgent, AgentCard
-from controller.agent import AgentModel
-from controller.tool import ToolModel
+from agentcurie.controller import Controller, AgentOutput, ChoiceModel, BaseAgent, AgentCard, SuperVisor
+from agentcurie.controller.agent import AgentModel
+from agentcurie.controller.tool import ToolModel
+from .message_manager import MessageManager
+from .prompts import SystemPrompt
+from .utils import get_first_key_param
+from .views import AgentResult, AgentContext, AgentStatus, FuncHook, AgentHook
 from langchain_openai import AzureChatOpenAI
 from langchain_openai.chat_models.base import BaseChatOpenAI
 from typing import Type, TypeVar
 from pydantic import BaseModel
-from controller import SuperVisor
-from supervisor.message_manager import MessageManager
-from supervisor.views import AgentResult, AgentContext, AgentStatus, FuncHook, AgentHook
 from typing import Dict, Any
 from uuid import uuid4
-from supervisor.prompts import SystemPrompt
-from supervisor.utils import get_first_key_param
 
 import os
 import asyncio

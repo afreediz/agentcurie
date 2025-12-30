@@ -1,10 +1,10 @@
 # MAIN CONTROLLER LOGIC
-from controller.tool import ToolsController, ToolModel
-from controller.agent import AgentsController, AgentCard, BaseAgent, AgentModel
-from controller.agent import SuperVisor
-from controller.views import ChoiceModel, ChoiceResult
-from typing import Type, Union, Literal
-from pydantic import RootModel, ConfigDict, BaseModel, create_model, Field
+from .tool import ToolsController, ToolModel
+from .agent import AgentsController, AgentCard, BaseAgent, AgentModel
+from .agent import SuperVisor
+from .views import ChoiceModel, ChoiceResult
+from typing import Type, Union
+from pydantic import create_model, Field
 from langchain_openai.chat_models.base import BaseChatOpenAI
 
 import logging
