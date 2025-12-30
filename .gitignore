@@ -8,3 +8,4 @@ venv/
 temp_*
 dist/
 *.egg-info/
+.pypirc
