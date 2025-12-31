@@ -218,6 +218,12 @@ Each feature contains an `examples/` directory that demonstrates:
 
 These examples are intended as both **learning resources** and **quick-start references**.
 
+Run example :  
+Make sure to store your .env inside examples before starting.  
+```python
+python -m examples.langchain_agents.main
+```
+
 ---
 
 ## 🧭 Important Code Guide
