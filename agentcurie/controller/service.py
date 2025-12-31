@@ -5,13 +5,13 @@ from .agent import SuperVisor
 from .views import ChoiceModel, ChoiceResult
 from typing import Type, Union
 from pydantic import create_model, Field
-from langchain_openai.chat_models.base import BaseChatOpenAI
+from langchain_core.language_models.chat_models import BaseChatModel
 
 import logging
 logger = logging.getLogger(__name__)
 
 class Controller():
-    def __init__(self, supervisor:SuperVisor, llm:BaseChatOpenAI) -> None:
+    def __init__(self, supervisor:SuperVisor, llm:BaseChatModel) -> None:
         """
             llm: The language model instance.
             supervisor: Supervisor agent which will get registered inside all other child agents.

@@ -6,7 +6,7 @@ from .prompts import SystemPrompt
 from .utils import get_first_key_param
 from .views import AgentResult, AgentContext, AgentStatus, FuncHook, AgentHook
 from langchain_openai import AzureChatOpenAI
-from langchain_openai.chat_models.base import BaseChatOpenAI
+from langchain_core.language_models.chat_models import BaseChatModel
 from typing import Type, TypeVar
 from pydantic import BaseModel
 from typing import Dict, Any
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar('T', bound=BaseModel)
 
 class SupervisorAgent(SuperVisor):
-    def __init__(self, llm:BaseChatOpenAI, func_hooks:list[FuncHook] = [], agent_hooks:list[AgentHook] = []):
+    def __init__(self, llm:BaseChatModel, func_hooks:list[FuncHook] = [], agent_hooks:list[AgentHook] = []):
         self.llm = llm
         self.controller = Controller(supervisor=self, llm=llm)
         

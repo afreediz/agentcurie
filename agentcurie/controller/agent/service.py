@@ -4,7 +4,7 @@ from typing import Any, TypeVar, Type, Optional
 from .registery.service import Registry
 from .views import AgentResult
 from .registery.views import AgentCard, AgentModel, BaseAgent
-from langchain_openai.chat_models.base import BaseChatOpenAI
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage
 
 T = TypeVar('T', bound=BaseModel)
@@ -14,7 +14,7 @@ class Controller():
 		self,
 		supervisor,
 		include_done_agent:bool = False,
-		llm:Optional[BaseChatOpenAI] = None
+		llm:Optional[BaseChatModel] = None
 	):
 		self.supervisor = supervisor
 		self.registry = Registry()
