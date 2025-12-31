@@ -1,7 +1,7 @@
-"""MCP (Model Context Protocol) client integration for gpa.
+"""MCP (Model Context Protocol) client integration for agentcurie.
 
-This module provides integration between external MCP servers and gpa registry.
-MCP tools are dynamically discovered and registered as gpa tools.
+This module provides integration between external MCP servers and agentcurie registry.
+MCP tools are dynamically discovered and registered as agentcurie tools.
 """
 
 import asyncio
@@ -25,7 +25,7 @@ MCP_AVAILABLE = True
 
 
 class MCPClient:
-	"""Client for connecting to MCP servers and exposing their tools as gpa actions."""
+	"""Client for connecting to MCP servers and exposing their tools as agentcurie actions."""
 
 	def __init__(
 		self,

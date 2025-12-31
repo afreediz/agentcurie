@@ -1,6 +1,6 @@
 """MCP (Model Context Protocol) support for browser-use.
 
-This module provides integration with MCP clients and gpa
+This module provides integration with MCP clients and agentcurie
 """
 
 from mcp_client.service import MCPClient

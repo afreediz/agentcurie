@@ -44,7 +44,7 @@ def setup_logging(stream=None, log_level=None, force_setup=False):
     log_type = log_level
 
     if logging.getLogger().hasHandlers() and not force_setup:
-        return logging.getLogger('gpa')
+        return logging.getLogger('agentcurie')
 
     root = logging.getLogger()
     root.handlers = []
@@ -70,12 +70,12 @@ def setup_logging(stream=None, log_level=None, force_setup=False):
     else:
         root.setLevel(logging.INFO)
 
-    gpa_logger = logging.getLogger('gpa')
-    gpa_logger.propagate = False
-    gpa_logger.addHandler(console)
-    gpa_logger.setLevel(root.level)
+    agentcurie_logger = logging.getLogger('agentcurie')
+    agentcurie_logger.propagate = False
+    agentcurie_logger.addHandler(console)
+    agentcurie_logger.setLevel(root.level)
 
-    logger = logging.getLogger('gpa')
+    logger = logging.getLogger('agentcurie')
 
     third_party_loggers = [
         'WDM',
@@ -105,7 +105,7 @@ def setup_logging(stream=None, log_level=None, force_setup=False):
 
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, "gpa.log")
+    log_file = os.path.join(log_dir, "agentcurie.log")
 
     class JSONFormatter(logging.Formatter):
         def format(self, record):
