@@ -34,7 +34,7 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
 
 def setup_logging(stream=None, log_level=None, force_setup=False):
     """
-    Setup logging configuration for browser-use.
+    Setup logging configuration for agentcurie.
     """
     try:
         addLoggingLevel('RESULT', 35)
@@ -49,7 +49,7 @@ def setup_logging(stream=None, log_level=None, force_setup=False):
     root = logging.getLogger()
     root.handlers = []
 
-    class BrowserUseFormatter(logging.Formatter):
+    class agentcurieFormatter(logging.Formatter):
         def format(self, record):
             return super().format(record)
 
@@ -57,9 +57,9 @@ def setup_logging(stream=None, log_level=None, force_setup=False):
 
     if log_type == 'result':
         console.setLevel('RESULT')
-        console.setFormatter(BrowserUseFormatter('%(message)s'))
+        console.setFormatter(agentcurieFormatter('%(message)s'))
     else:
-        console.setFormatter(BrowserUseFormatter('%(levelname)-8s [%(name)s] %(message)s'))
+        console.setFormatter(agentcurieFormatter('%(levelname)-8s [%(name)s] %(message)s'))
 
     root.addHandler(console)
 

@@ -162,10 +162,10 @@ class MCPClient:
 		tool_filter: list[str] | None = None,
 		prefix: str | None = None,
 	) -> None:
-		"""Register MCP tools as actions in the browser-use controller.
+		"""Register MCP tools as actions in the agentcurie controller.
 
 		Args:
-			controller: Browser-use controller to register actions to
+			controller: agentcurie controller to register actions to
 			tool_filter: Optional list of tool names to register (None = all tools)
 			prefix: Optional prefix to add to action names (e.g., "playwright_")
 		"""
@@ -190,13 +190,13 @@ class MCPClient:
 			self._register_tool_as_action(registry, action_name, tool)
 			self._registered_actions.add(action_name)
 
-		logger.info(f"✅ Registered {len(self._registered_actions)} MCP tools from '{self.server_name}' as browser-use actions")
+		logger.info(f"✅ Registered {len(self._registered_actions)} MCP tools from '{self.server_name}' as agentcurie actions")
 
 	def _register_tool_as_action(self, registry: Registry, action_name: str, tool: Any) -> None:
-		"""Register a single MCP tool as a browser-use action.
+		"""Register a single MCP tool as a agentcurie action.
 
 		Args:
-			registry: Browser-use registry to register action to
+			registry: agentcurie registry to register action to
 			action_name: Name for the registered action
 			tool: MCP Tool object with schema information
 		"""
@@ -296,11 +296,11 @@ class MCPClient:
 		mcp_action_wrapper.__name__ = action_name
 		mcp_action_wrapper.__qualname__ = f'mcp.{self.server_name}.{action_name}'
 
-		# Register the action with browser-use
+		# Register the action with agentcurie
 		description = tool.description or f'MCP tool from {self.server_name}: {tool.name}'
 
 		# Use the registry's action decorator
-		registry.action(description=description, param_model=param_model)(
+		registry.tool(description=description, param_model=param_model)(
 			mcp_action_wrapper
 		)
 
@@ -354,6 +354,7 @@ class MCPClient:
 			Python type corresponding to the schema
 		"""
 		json_type = schema.get('type')
+		assert isinstance(json_type, str)
 
 		# Handle enums
 		if 'enum' in schema:

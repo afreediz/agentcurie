@@ -12,7 +12,7 @@ async def main() -> None:
         args=["-y", "@modelcontextprotocol/server-filesystem",r"C:\path\to\your\folder"]
     )
 
-    # Register all MCP tools as browser-use actions
+    # Register all MCP tools as agentcurie actions
     await mcp_client.register_to_controller(controller)
     print(controller.registry.get_prompt_description())
 

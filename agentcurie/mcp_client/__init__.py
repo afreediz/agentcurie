@@ -1,4 +1,4 @@
-"""MCP (Model Context Protocol) support for browser-use.
+"""MCP (Model Context Protocol) support for agentcurie.
 
 This module provides integration with MCP clients and agentcurie
 """
