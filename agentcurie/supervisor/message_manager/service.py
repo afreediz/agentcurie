@@ -72,36 +72,6 @@ class MessageManager:
 		msg = HumanMessage(content=content)
 		self._add_message_with_tokens(msg)
 
-	# Guide the model through states, in future if needed
-	# def add_state_message(
-	# 	self,
-	# 	result: Optional[List[ActionResult]] = None,
-	# 	step_info: Optional[AgentStepInfo] = None,
-	# ) -> None:
-	# 	"""Add browser state as human message"""
-
-	# 	# if keep in memory, add to directly to history and add state without result
-	# 	if result:
-	# 		for r in result:
-	# 			if r.include_in_memory:
-	# 				if r.extracted_content:
-	# 					msg = HumanMessage(content='Action result: ' + str(r.extracted_content))
-	# 					self._add_message_with_tokens(msg)
-	# 				if r.error:
-	# 					msg = HumanMessage(content='Action error: ' + str(r.error)[-self.max_error_length :])
-	# 					self._add_message_with_tokens(msg)
-	# 				result = None  # if result in history, we dont want to add it again
-
-	# 	# otherwise add state message and result to next message (which will not stay in memory)
-	# 	state_message = AgentMessagePrompt(
-	# 		state,
-	# 		result,
-	# 		include_attributes=self.include_attributes,
-	# 		max_error_length=self.max_error_length,
-	# 		step_info=step_info,
-	# 	).get_user_message()
-	# 	self._add_message_with_tokens(state_message)
-
 	def add_ai_message(self, message:str) -> None:
 		self._add_message_with_tokens(
 			AIMessage(content=message)
