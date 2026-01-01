@@ -5,12 +5,10 @@ from .message_manager import MessageManager
 from .prompts import SystemPrompt
 from .utils import get_first_key_param
 from .views import AgentResult, AgentContext, AgentStatus, FuncHook, AgentHook
-from langchain_openai import AzureChatOpenAI
 from langchain_core.language_models.chat_models import BaseChatModel
 from typing import Type, TypeVar
 from pydantic import BaseModel
-from typing import Dict, Any
-from uuid import uuid4
+from typing import Dict
 
 import os
 import asyncio
@@ -21,7 +19,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar('T', bound=BaseModel)
 
 class SupervisorAgent(SuperVisor):
-    def __init__(self, llm:BaseChatModel, func_hooks:list[FuncHook] = [], agent_hooks:list[AgentHook] = []):
+    def __init__(self, llm:BaseChatModel, func_hooks:list[FuncHook] = [], agent_hooks:list[AgentHook] = [], extended_system_prompt:str|None = None):
         self.llm = llm
         self.controller = Controller(supervisor=self, llm=llm)
         
@@ -49,6 +47,8 @@ class SupervisorAgent(SuperVisor):
         self.agent_tasks: Dict[str, AgentContext] = {}
         self.pending_queries = {}
 
+        self.extended_system_prompt = extended_system_prompt
+
     def register_agent(self, agent_card:AgentCard, agent_class:Type[BaseAgent]):
         self.controller.register_agent(agent_card=agent_card, agent_class=agent_class)
 
@@ -68,7 +68,7 @@ class SupervisorAgent(SuperVisor):
         logger.info("\033[33m ---- CONTEXT INITIALIZING STARTED ---- \033[0m")
         if len(self.message_manager.history.messages) == 0:
             logger.info('updating system prompt')
-            system_prompt = SystemPrompt()
+            system_prompt = SystemPrompt(extended_system_prompt=self.extended_system_prompt)
             system_message = system_prompt.get_system_message(self.controller.get_prompt_description())
             self.message_manager._add_message_with_tokens(system_message)
             # update model schemas

@@ -33,16 +33,15 @@ class Controller():
 		try:
 			for tool_name, params in tool.model_dump(exclude_unset=True).items():
 				if params is not None:
-					# remove highlights
 					result = await self.registry.execute_tool(tool_name, params)
-					if isinstance(result, str):
-						return ToolResult(content=result)
+
+					if result is None:
+						return ToolResult()
 					elif isinstance(result, ToolResult):
 						return result
-					elif result is None:
-						return ToolResult()
 					else:
-						raise ValueError(f'Invalid tool result type: {type(result)} of {result}')
+						return ToolResult(content=str(result))
+					
 			return ToolResult()
 		except Exception as e:
 			raise e

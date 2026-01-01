@@ -86,11 +86,19 @@ class Registry:
 			parameters = list(sig.parameters.values())
 			is_pydantic = parameters and issubclass(parameters[0].annotation, BaseModel)
 
-			if is_pydantic:
-				return await tool.function(validated_params)
-			
-			return await tool.function(**validated_params.model_dump())
 
+			if is_pydantic:
+				result = await tool.function(validated_params)
+			else:
+				result = await tool.function(**validated_params.model_dump())
+
+				
+			if result:
+				return result
+			else:
+				# for none returning tools
+				return "Tool executed successfully"
+			
 		except Exception as e:
 			raise RuntimeError(f'Error executing tool {tool_name}: {str(e)}') from e
 

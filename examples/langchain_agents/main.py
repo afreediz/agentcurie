@@ -58,10 +58,14 @@ async def main():
 
         return "Sunny, 72°F"
     
+    @supervisor.register_tool("Tester tool")
+    def tester_tool():
+        pass
+    
     try:
         # Test the system
         result1 = await supervisor.solve("""
-Check weather details of kochi, add 10 with the temperature and store it in database
+Call tester tool
 """)
         
 #         result1 = await supervisor.solve("""

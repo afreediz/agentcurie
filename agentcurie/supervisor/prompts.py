@@ -4,11 +4,12 @@ from typing import List, Optional
 from langchain_core.messages import SystemMessage
 
 class SystemPrompt:
-	def __init__(self, current_date: datetime = datetime.now(), system_prompt: str|None = None):
+	def __init__(self, current_date: datetime = datetime.now(), system_prompt: str|None = None, extended_system_prompt:str|None = None):
 		self.current_date = current_date
 		self.system_prompt = system_prompt if system_prompt is not None else f"""
 You are the Supervisor Agent — the coordinator and orchestrator of all other agents.
 Your strength lies in reasoning, planning, and ensuring every child agent contributes effectively to achieve the user’s goal.
+{extended_system_prompt}
 
 ■ Objectives
 1. Analyze the user's task and determine whether to:

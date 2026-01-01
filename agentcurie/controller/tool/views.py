@@ -7,7 +7,7 @@ class ToolResult(BaseModel):
     is_done: bool | None = False
     success: bool | None = True
     error: str | None = None
-    content: str | None = None
+    content: str | dict | None = None
 
 # dynamically type guided model invoking schema for accurate tool params
 class AgentOutput(BaseModel):
