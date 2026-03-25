@@ -47,6 +47,10 @@ class SupervisorAgent(SuperVisor):
         self.agent_tasks: Dict[str, AgentContext] = {}
         self.pending_queries = {}
 
+        # events for agent status signalling (avoids asyncio.sleep polling)
+        self._agent_events: Dict[str, asyncio.Event] = {}   # fires on COMPLETED / ERROR / WAITING_FOR_QUERY
+        self._query_events: Dict[str, asyncio.Event] = {}   # fires on QUERY_PROCESSED
+
         self.extended_system_prompt = extended_system_prompt
 
     def register_agent(self, agent_card:AgentCard, agent_class:Type[BaseAgent]):
@@ -91,20 +95,28 @@ class SupervisorAgent(SuperVisor):
 
         if agent_name not in self.agent_tasks:
             raise RuntimeError("Query from a unknow agent task")
-        
+
+        # prepare a fresh query event for this round-trip
+        if agent_name not in self._query_events:
+            self._query_events[agent_name] = asyncio.Event()
+        query_event = self._query_events[agent_name]
+        query_event.clear()
+
         # update agent_task status so main logic can continue and process the query
         self.pending_queries[agent_name] = message
         self.agent_tasks[agent_name].query = message
         self.agent_tasks[agent_name].status = AgentStatus.WAITING_FOR_QUERY
 
-        while self.agent_tasks[agent_name].status != AgentStatus.QUERY_PROCESSED:
-            await asyncio.sleep(1)
+        # wake the supervisor so it can handle the query
+        self._agent_events[agent_name].set()
+
+        # wait until the supervisor has posted an answer
+        await query_event.wait()
 
         result = self.agent_tasks[agent_name].result
         assert isinstance(result, str)
 
         # reset state
-        # del self.agent_tasks[agent_name]
         self.agent_tasks[agent_name].result = None
         self.agent_tasks[agent_name].query = None
 
@@ -118,8 +130,11 @@ class SupervisorAgent(SuperVisor):
             result = await self.controller.execute_agent(choice)
             self.agent_tasks[agent_name].result = result.content
             self.agent_tasks[agent_name].status = AgentStatus.COMPLETED
+            self._agent_events[agent_name].set()
         except Exception as e:
             logger.info(f"{agent_name} produced error {str(e)}")
+            self.agent_tasks[agent_name].status = AgentStatus.ERROR
+            self._agent_events[agent_name].set()
             raise e
 
     async def solve(self, task: str):
@@ -154,13 +169,16 @@ class SupervisorAgent(SuperVisor):
 
                     agent_name, agent_task = get_first_key_param(choice.model_dump())
                     self.agent_tasks[agent_name] = AgentContext(message=agent_task, agent_name=agent_name)
-                    
+
+                    # fresh event for this invocation so stale signals don't wake us early
+                    self._agent_events[agent_name] = asyncio.Event()
 
                     if agent_name in self.pending_queries:
                         # resolve pending queries from child agents
                         pending_query = self.pending_queries[agent_name]
                         self.agent_tasks[agent_name].result = agent_task
                         self.agent_tasks[agent_name].status = AgentStatus.QUERY_PROCESSED
+                        self._query_events[agent_name].set()
                         logger.info(f"\033[32m Responded to pending query \n{agent_name}:{pending_query}? \nanswer:{agent_task} \033[0m")
                     else:
                         for hook in self.agent_hooks_before:
@@ -169,10 +187,9 @@ class SupervisorAgent(SuperVisor):
                         logger.info(f"\033[32m Calling agent : {agent_name} - assinging task : '{agent_task}' \033[0m")
                         # run child agent as a background task to enable non-blocking executions
                         asyncio.create_task(self.run_child_agent_with_context(agent_name, choice))
-                    
-                    # wait for child agent to process and update status
-                    while self.agent_tasks[agent_name].status not in (AgentStatus.COMPLETED, AgentStatus.ERROR, AgentStatus.WAITING_FOR_QUERY):
-                        await asyncio.sleep(1)
+
+                    # wait for child agent to reach COMPLETED, ERROR, or WAITING_FOR_QUERY
+                    await self._agent_events[agent_name].wait()
 
                     res, status = self.agent_tasks[agent_name].result, self.agent_tasks[agent_name].status
 
