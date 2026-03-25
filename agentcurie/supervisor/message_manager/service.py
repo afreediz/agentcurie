@@ -127,60 +127,55 @@ class MessageManager:
 		choice_dump = model_output.action.choice.model_dump()
 
 		if choice == 'agent':
-			agent_name, agent_message = get_first_key_param(choice_dump)
+			agent_name, agent_message = get_first_key_param(choice_dump['agent'])
 			message += f"For this i will call agent '{agent_name}' and assign it task '{agent_message}'\n"
 		elif choice == 'tool':
-			message += f"for this i will call tool : {choice_dump}"
+			tool_names = [get_first_key_param(t)[0] for t in choice_dump['tools']]
+			message += f"for this i will call tool(s): {', '.join(tool_names)}"
 		else:
 			raise ValueError('Unknow choice')
-		
+
 		return message
 
 	def add_choice(self, model_output: AgentOutput) -> None:
 		choice = model_output.get_choice()
-		choice_json = model_output.action.choice.model_dump()
+		choice_dump = model_output.action.choice.model_dump()
 
 		if choice == 'agent':
-			agent_name, message = get_first_key_param(choice_json)
+			agent_name, message = get_first_key_param(choice_dump['agent'])
 			tool_calls = [
 				{
 					'name': agent_name,
-					'args': {'message':message},
+					'args': {'message': message},
 					'id': agent_name,
 					'type': 'tool_call',
 				}
 			]
-
-			msg = AIMessage(
-				content=self.format_agentoutput(model_output),
-				tool_calls=tool_calls
-			)
 		elif choice == 'tool':
-			key_name, param = get_first_key_param(choice_json)
-
-			tool_calls = [
-				{
-					'name': key_name,
-					'args': param,
-					'id': key_name,
+			tool_calls = []
+			for tool_dict in choice_dump['tools']:
+				tool_name, params = get_first_key_param(tool_dict)
+				tool_calls.append({
+					'name': tool_name,
+					'args': params if isinstance(params, dict) else {},
+					'id': tool_name,
 					'type': 'tool_call',
-				}
-			]
-
-			msg = AIMessage(
-				content=self.format_agentoutput(model_output),
-				tool_calls=tool_calls
-			)
+				})
 		else:
 			raise ValueError("Unknow choice")
-		
+
+		msg = AIMessage(
+			content=self.format_agentoutput(model_output),
+			tool_calls=tool_calls
+		)
 		self._add_message_with_tokens(msg)
 
 	def add_response(self, action: AgentOutput, result: str) -> None:
-		key_name, param = get_first_key_param(action.action.choice.model_dump())
+		"""Add a ToolMessage response for an agent call."""
+		agent_name, _ = get_first_key_param(action.action.choice.model_dump()['agent'])
 		tool_message = ToolMessage(
 			content=result,
-			tool_call_id=key_name,
+			tool_call_id=agent_name,
 		)
 		self._add_message_with_tokens(tool_message)
 

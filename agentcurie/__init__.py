@@ -1,6 +1,14 @@
 from agentcurie.supervisor import SupervisorAgent, AgentHook, FuncHook
 from agentcurie.supervisor.message_manager import MessageManager
-from agentcurie.controller import Controller, AgentsController, ToolsController, AgentCard, BaseAgent
+from agentcurie.controller import (
+    Controller, 
+    AgentsController, 
+    ToolsController, 
+    AgentCard, 
+    BaseAgent,
+    ToolResult,
+    AgentResult
+)
 
 __all__ = [
     'SupervisorAgent',
@@ -11,5 +19,6 @@ __all__ = [
     'AgentHook',
     'FuncHook',
     'AgentCard',
-    'BaseAgent'
+    'BaseAgent',
+    'ToolResult'
 ]

@@ -1,6 +1,4 @@
-from agentcurie.controller import Controller, AgentOutput, ChoiceModel, BaseAgent, AgentCard, SuperVisor
-from agentcurie.controller.agent import AgentModel
-from agentcurie.controller.tool import ToolModel
+from agentcurie.controller import Controller, AgentOutput, ChoiceModel, BaseAgent, AgentCard, SuperVisor, ToolsAction, AgentAction
 from .message_manager import MessageManager
 from .prompts import SystemPrompt
 from .utils import get_first_key_param
@@ -124,7 +122,7 @@ class SupervisorAgent(SuperVisor):
 
         return result
 
-    async def run_child_agent_with_context(self, agent_name, choice:AgentModel) -> None:
+    async def run_child_agent_with_context(self, agent_name, choice) -> None:
         "Assign and execute tasks to child agent with context status"
         try:
             result = await self.controller.execute_agent(choice)
@@ -159,15 +157,11 @@ class SupervisorAgent(SuperVisor):
                 self.message_manager.add_choice(next_action)
                 logger.info(f"\033[32m 🔍{next_action.evaluation_previous_goal} \n📝{next_action.memory} \n💡{next_action.next_goal} \033[0m")
                 
-                try:
-                    choice = next_action.action.choice.root
-                except Exception as e:
-                    choice = next_action.action.choice
+                choice = next_action.action.choice  # ToolsAction | AgentAction
 
-                if next_action.get_choice() == 'agent':
-                    assert isinstance(choice, AgentModel)
-
-                    agent_name, agent_task = get_first_key_param(choice.model_dump())
+                if isinstance(choice, AgentAction):
+                    agent_model = choice.agent
+                    agent_name, agent_task = get_first_key_param(agent_model.model_dump())
                     self.agent_tasks[agent_name] = AgentContext(message=agent_task, agent_name=agent_name)
 
                     # fresh event for this invocation so stale signals don't wake us early
@@ -184,9 +178,9 @@ class SupervisorAgent(SuperVisor):
                         for hook in self.agent_hooks_before:
                             await hook.func(self.controller.agents_controller.registry.get_agent_instance(hook.agent_name), self)
 
-                        logger.info(f"\033[32m Calling agent : {agent_name} - assinging task : '{agent_task}' \033[0m")
+                        logger.info(f"\033[32m Calling agent : {agent_name} - assigning task : '{agent_task}' \033[0m")
                         # run child agent as a background task to enable non-blocking executions
-                        asyncio.create_task(self.run_child_agent_with_context(agent_name, choice))
+                        asyncio.create_task(self.run_child_agent_with_context(agent_name, agent_model))
 
                     # wait for child agent to reach COMPLETED, ERROR, or WAITING_FOR_QUERY
                     await self._agent_events[agent_name].wait()
@@ -201,7 +195,7 @@ class SupervisorAgent(SuperVisor):
 
                         for hook in self.agent_hooks_after:
                             await hook.func(self.controller.agents_controller.registry.get_agent_instance(hook.agent_name), self)
-                    
+
                     if status == AgentStatus.WAITING_FOR_QUERY:
                         self.agent_tasks[agent_name].status = AgentStatus.QUERY_INTERCEPTED
                         message = f"While processing request, agent {agent_name} has a query: {self.agent_tasks[agent_name].query}"
@@ -209,23 +203,27 @@ class SupervisorAgent(SuperVisor):
 
                         self.message_manager.add_response(next_action, message)
 
-                elif next_action.get_choice() == 'tool':
-                    assert isinstance(choice, ToolModel)
-                    tool_name, params = get_first_key_param(choice.model_dump())
-                    logger.info(f"\033[32m Calling tool : {tool_name} - params: {params} \033[0m")
+                elif isinstance(choice, ToolsAction):
+                    for tool_model in choice.tools:
+                        tool_name, params = get_first_key_param(tool_model.model_dump())
+                        logger.info(f"\033[32m Calling tool : {tool_name} - params: {params} \033[0m")
 
-                    for hook in self.func_hooks_before:
-                        await hook.func(self)
+                        for hook in self.func_hooks_before:
+                            await hook.func(self)
 
-                    result = await self.controller.execute_tool(choice)
-                    assert isinstance(result.content, str)
+                        result = await self.controller.execute_tool(tool_model)
+                        assert isinstance(result.content, str)
 
-                    self.message_manager.add_response(next_action, result.content)
+                        # each tool gets its own ToolMessage to satisfy the tool_call_id requirement
+                        self.message_manager.add_tool_message(result.content, tool_name)
 
-                    for hook in self.func_hooks_after:
-                        await hook.func(self)
+                        for hook in self.func_hooks_after:
+                            await hook.func(self)
 
-                    logger.info(f"\033[36m Result from tool - {tool_name} : {result.content} \033[0m")
+                        logger.info(f"\033[36m Result from tool - {tool_name} : {result.content} \033[0m")
+
+                        if result.is_done:
+                            break
 
                     if result.is_done:
                         logger.info(f"\n\nCompleted!, {result.content}")

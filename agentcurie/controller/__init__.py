@@ -1,7 +1,7 @@
 # Export agent controllers when implemented
 from .tool import ToolsController, ToolsRegistry, ToolModel, ToolResult
 from .agent import AgentsController, AgentCard, AgentResult, BaseAgent, SuperVisor
-from .views import ChoiceModel, ChoiceResult, AgentOutput
+from .views import ChoiceModel, ChoiceResult, AgentOutput, ToolsAction, AgentAction
 from .service import Controller
 
 __all__ = [
@@ -15,6 +15,8 @@ __all__ = [
     'Controller',
     'ChoiceModel',
     'ChoiceResult',
+    'ToolsAction',
+    'AgentAction',
     'BaseAgent',
     'AgentOutput',
     'SuperVisor'

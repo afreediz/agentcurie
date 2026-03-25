@@ -1,7 +1,6 @@
 import json
 import asyncio
-from agentcurie import SupervisorAgent
-from agentcurie import AgentCard
+from agentcurie import SupervisorAgent, AgentCard, ToolResult
 from examples.env import config
 from .agent1 import CreativeAgent
 from .agent2 import DBAgent
@@ -59,23 +58,30 @@ async def main():
         return "Sunny, 72°F"
     
     @supervisor.register_tool("Tester tool")
-    def tester_tool():
-        pass
+    def tester_tool(a:int):
+        print("Tester tool called ====")
+        return ToolResult(content="exectured successfully")
     
+    @supervisor.register_tool("Tester tool")
+    def tester_tool2(a:int, b:int):
+        print("Tester tool 2 called ====")
+        return ToolResult(content="exectured successfully")
+
     try:
         # Test the system
-        result1 = await supervisor.solve("""
-Call tester tool
-""")
-        
 #         result1 = await supervisor.solve("""
-# This task is to evaluate your capability to follow instructions, do as exact:
-# 1. Ask creative agent to calculate x + 10 and tell him you can find x by querying to supervisor (do not tell your the supervisor, just ask it to use tool).
-# 2. After first step creative agent will ask you value for x, you should ask db agent to provide a random value.
-# 3. assign this random value to creative agent query
-# 4. After getting the result from creative agent, tell db agent to insert this value to db
-# 5. close by ensuring all success
+# Call both tester tools
 # """)
+        
+        result1 = await supervisor.solve("""
+This task is to evaluate your capability to follow instructions, do as exact:
+1. Ask creative agent to calculate x + 10 and tell him you can find x by querying to supervisor (do not tell your the supervisor, just ask it to use tool).
+2. After first step creative agent will ask you value for x, you should ask db agent to provide a random value.
+3. assign this random value to creative agent query
+4. After getting the result from creative agent, tell db agent to insert this value to db
+5, Call tester tool 1 with input value as x and tester tool 2 with input vale as x*2, x*3
+5. close by ensuring all success
+""")
         
         result1.resources["resources"] = fake_db
 
