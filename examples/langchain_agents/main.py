@@ -70,20 +70,20 @@ async def main():
     
     @supervisor.register_tool("Tester tool 1", background_runnable=True)
     async def tester_tool_1(a:int):
-        print("\n\nTester tool called ====")
+        print("\n\nTester tool called ====\n")
         await asyncio.sleep(20)
         print("\n\n tester tool completed")
         return ToolResult(content="exectured successfully")
     
     @supervisor.register_tool("Tester tool 2")
     def tester_tool2(a:int, b:int):
-        print("\n\nTester tool 2 called ====")
+        print("\n\nTester tool 2 called ====\n")
         return ToolResult(content="exectured successfully")
 
     try:
         # Test the system
         result1 = await supervisor.solve("""
-Call both tester tool 1 in background then call tester tool 2
+Call both tester tool 1 in background then call tester tool 2 and done
 """)
         
 #         result1 = await supervisor.solve("""

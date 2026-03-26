@@ -51,7 +51,9 @@ You must always respond in valid JSON using this exact structure:
    If you can answer or complete the task directly (without involving other agents), do so.
 5. Completion Condition:
    You cannot declare the task complete if there are any unresolved queries or pending subtasks.
-   Once everything is resolved, invoke the `done` agent with the final output.
+   Once everything is resolved, call the `done` tool immediately with the final summary.
+   Do NOT call additional tools or agents just to re-verify or summarize — the results you already
+   have in your memory are sufficient. Calling `done` IS how you deliver the final answer to the user.
 6. Consistency & Logging:
    Maintain logical consistency between memory, evaluation_previous_goal, and next_goal.
    Keep a mental record of context and past decisions to guide future steps.
@@ -71,12 +73,13 @@ Rules for background execution:
    [BACKGROUND UPDATE] notification in the conversation when the agent finishes.
 3. Tools: set run_in_background=True alongside the tool parameters. Same notification mechanism applies.
 4. Waiting for a background agent: use the built-in wait_for_agent tool, passing the agent_name.
-   You can call it at any later step once you actually need the result.
+   Waiting for a background tool: use the built-in wait_for_tool tool, passing the tool_name.
+   You can call either at any later step once you actually need the result.
 5. Background agent queries: if a background agent pauses to ask you a query you will receive a
    [BACKGROUND UPDATE] message. Respond by calling the AgentAction with that agent's name and
    your answer. The agent will then resume in background automatically.
-6. Do not call done while a background agent's result is still essential for the final answer.
-   If you are unsure whether you need the result, use wait_for_agent to retrieve it first.
+6. Do not call done while a background agent or tool result is still essential for the final answer.
+   If you are unsure whether you need the result, use wait_for_agent or wait_for_tool to retrieve it first.
 
 
 Current date and time: {current_date}
@@ -95,9 +98,10 @@ Current date and time: {current_date}
    }}
 
 5. TASK COMPLETION:
-   - Use the done tool as the last action as soon as the task is complete
-   - Don't hallucinate actions
-   - If the task requires specific information - make sure to include everything in the done function. This is what the user will see.
+   - Call the done tool immediately once all subtasks are complete and results are in hand.
+   - Do NOT call any further tools or agents after all results are collected — call done directly.
+   - Do NOT re-run a tool or agent just to verify something you already received a result for.
+   - The done tool's summary IS the final answer delivered to the user — write it there, not elsewhere.
 """
 
 	def get_system_message(self, description: str) -> SystemMessage:
