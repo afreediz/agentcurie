@@ -475,15 +475,15 @@ class SupervisorAgent(SuperVisor):
                         if result and result.is_done:
                             break
 
-                    if result and result.is_done:
-                        logger.info(f"\033[1m\033[32m ✅ DONE — {result.content} │ total tokens: {self.message_manager.history.total_tokens}\033[0m")
+                    if result and result.is_done: #type:ignore
+                        logger.info(f"\033[1m\033[32m ✅ DONE — {result.content} │ total tokens: {self.message_manager.history.total_tokens}\033[0m") #type:ignore
                         break
 
                 step += 1
 
             # post processing
-            logger.info(f"Task completed : {result.content}")
-            return AgentResult(content=result.content, messages=self.message_manager.get_messages())
+            logger.info(f"Task completed : {result.content}") #type:ignore
+            return AgentResult(content=result.content, messages=self.message_manager.get_messages()) #type:ignore
 
         except Exception as e:
             raise e

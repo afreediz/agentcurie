@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agentcurie"
-version = "0.1.2"
+version = "1.0.0"
 description = "Multiagentic supervisory system"
 readme = "README.md"
 license = { file = "LICENSE" }
