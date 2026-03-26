@@ -32,6 +32,9 @@ class Controller():
 		"""Execute a tool"""
 		try:
 			for tool_name, params in tool.model_dump(exclude_unset=True).items():
+				# Skip metadata fields injected by the background-runnable mechanism
+				if tool_name not in self.registry.registry.tools:
+					continue
 				if params is not None:
 					result = await self.registry.execute_tool(tool_name, params)
 
@@ -41,7 +44,7 @@ class Controller():
 						return result
 					else:
 						return ToolResult(content=str(result))
-					
+
 			return ToolResult()
 		except Exception as e:
 			raise e

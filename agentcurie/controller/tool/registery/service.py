@@ -35,8 +35,18 @@ class Registry:
 		self,
 		description: str,
 		param_model: Optional[Type[BaseModel]] = None,
+		background_runnable: bool = False,
 	):
-		"""Decorator for registering tools"""
+		"""Decorator for registering tools.
+
+		Args:
+			description: Describe what the tool does (used in LLM prompt).
+			param_model: Optional custom Pydantic model for parameters.
+			background_runnable: When True the supervisor may run this tool in
+				background (fire-and-forget) if no subsequent action immediately
+				depends on its result.  The supervisor will be notified upon
+				completion via a [BACKGROUND UPDATE] message.
+		"""
 
 		def decorator(func: Callable):
 			# Skip registration if tool is in exclude_tools
@@ -65,6 +75,7 @@ class Registry:
 				description=description,
 				function=wrapped_func,
 				param_model=actual_param_model,
+				background_runnable=background_runnable,
 			)
 			self.registry.tools[func.__name__] = tool
 			return func
@@ -120,6 +131,22 @@ class Registry:
 
 		# print("AVAILABLE TOOLS : ", " ,".join([key for (key, value) in available_tools.items()]))
 		for name, tool in available_tools.items():
+			# For background-runnable tools, expose a run_in_background flag so
+			# the LLM can signal fire-and-forget execution.
+			extra_fields: dict = {}
+			if tool.background_runnable:
+				extra_fields['run_in_background'] = (
+					bool,
+					Field(
+						False,
+						description=(
+							"Run this tool in background without waiting for its result. "
+							"Only set to True when no subsequent action immediately depends "
+							"on this tool's result. You will be notified upon completion."
+						),
+					),
+				)
+
 			# Create an individual model for each tool that contains only one field
 			individual_model = create_model(
 				f'{name.title().replace("_", "")}ToolModel',
@@ -128,7 +155,8 @@ class Registry:
 					name: (
 						tool.param_model,
 						Field(..., description=tool.description),
-					)
+					),
+					**extra_fields,
 				},
 			)
 			individual_tool_models.append(individual_model)

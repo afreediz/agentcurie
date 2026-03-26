@@ -17,6 +17,7 @@ class AgentCard(BaseModel):
     description: str = Field(..., description="Describe what your agent does")
     skills: list[str] = Field(..., description="Descirbe set of skills your agent can perform")
     persistent: Optional[bool] = False
+    background_runnable: Optional[bool] = False
 
 class SuperVisor(ABC):
 
@@ -67,7 +68,9 @@ class RegisteredAgent(BaseModel):
     def prompt_description(self):
         s = f'{self.card.name}: '
         s += f'{self.card.description}.'
-        s += f' Skills: {', '.join(self.card.skills)}.'
+        s += f' Skills: {", ".join(self.card.skills)}.'
+        if self.card.background_runnable:
+            s += ' [background-runnable: you may set run_in_background=True in AgentAction when no immediate result dependency exists]'
         return s
 
 class AgentsRegistry(BaseModel):

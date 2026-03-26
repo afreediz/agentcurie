@@ -33,6 +33,7 @@ class Event:
 class AgentStatus(Enum):
     IDLE = "idle"
     PROCESSING = "processing"
+    RUNNING_IN_BACKGROUND = "running_in_background"
     WAITING_FOR_QUERY = "waiting_for_query"
     QUERY_PROCESSED = "query_processed"
     QUERY_INTERCEPTED = "query_intercepted"
@@ -57,6 +58,7 @@ class AgentContext:
     instance_id: str  = uuid.uuid4().hex
     result: Optional[str] = None
     error: Optional[str] = None
+    is_background: bool = False  # True when running without supervisor waiting
 
 @dataclass
 class QueryMessage:

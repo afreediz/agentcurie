@@ -15,6 +15,7 @@ class RegisteredTool(BaseModel):
 	description: str
 	function: Callable
 	param_model: Type[BaseModel]
+	background_runnable: bool = False
 
 	model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -30,6 +31,8 @@ class RegisteredTool(BaseModel):
 			}
 		)
 		s += '}'
+		if self.background_runnable:
+			s += '\n  [background-runnable: set run_in_background=True alongside this tool when no immediate result dependency exists]'
 		return s
 
 

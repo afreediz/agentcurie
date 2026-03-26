@@ -20,6 +20,16 @@ class AgentAction(BaseModel):
     """Delegate to exactly one agent"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
     agent: Any  # AgentModel — typed precisely in dynamic subclass
+    run_in_background: bool = Field(
+        False,
+        description=(
+            "Run this agent in background without waiting for its result. "
+            "Only set to True if the agent card has background_runnable=True AND "
+            "no subsequent action immediately depends on this agent's result. "
+            "While the agent runs in background you will be notified upon completion. "
+            "Use the wait_for_agent tool to explicitly wait for the result when needed."
+        ),
+    )
 
     def get_type(self) -> Literal['agent']:
         return 'agent'
