@@ -41,6 +41,10 @@ class SupervisorAgent(SuperVisor):
         # background tool completion queue: list of (tool_name, result_str)
         self.background_tool_results: list[tuple[str, str]] = []
 
+        # background tool tracking: event fires when done, completions stores result
+        self._bg_tool_events: Dict[str, asyncio.Event] = {}
+        self._bg_tool_completions: Dict[str, tuple[bool, str]] = {}  # name -> (success, content)
+
         self.extended_system_prompt = extended_system_prompt
 
         # ── Built-in: wait_for_agent ──────────────────────────────────────────
@@ -79,6 +83,32 @@ class SupervisorAgent(SuperVisor):
             if ctx.status == AgentStatus.ERROR:
                 return ToolResult(content=f"Agent '{agent_name}' failed: {ctx.error}", success=False)
             return ToolResult(content=str(ctx.result) if ctx.result else f"Agent '{agent_name}' completed with no result.")
+
+        # ── Built-in: wait_for_tool ───────────────────────────────────────────
+        @self.controller.tool(
+            "Wait for a background tool to complete and retrieve its result. "
+            "Use this when you previously started a tool with run_in_background=True "
+            "and now need its result to continue the task.",
+        )
+        async def wait_for_tool(tool_name: str) -> ToolResult:
+            if tool_name not in supervisor_ref._bg_tool_events:
+                return ToolResult(
+                    content=f"No background tool named '{tool_name}' found.",
+                    success=False,
+                )
+            evt = supervisor_ref._bg_tool_events[tool_name]
+            if not evt.is_set():
+                await evt.wait()
+            success, content = supervisor_ref._bg_tool_completions.pop(tool_name, (True, "Tool completed with no output."))
+            del supervisor_ref._bg_tool_events[tool_name]
+            # Drain from passive queue to avoid double [BACKGROUND UPDATE] notification
+            for entry in supervisor_ref.background_tool_results:
+                if entry[0] == tool_name:
+                    supervisor_ref.background_tool_results.remove(entry)
+                    break
+            if not success:
+                return ToolResult(content=f"Tool '{tool_name}' failed: {content}", success=False)
+            return ToolResult(content=content)
 
         # ─────────────────────────────────────────────────────────────────────
 
@@ -182,17 +212,23 @@ class SupervisorAgent(SuperVisor):
     async def run_background_tool(self, tool_name: str, tool_model) -> None:
         """Execute a tool as a fire-and-forget background task.
 
-        On completion the result is appended to self.background_tool_results so
-        the supervisor picks it up at the start of the next loop iteration.
+        On completion the result is stored in _bg_tool_completions and the event
+        is set (unblocking any wait_for_tool call). The result is also appended
+        to background_tool_results for passive per-step notification.
         """
         try:
             result = await self.controller.execute_tool(tool_model)
             content = result.content if result.content is not None else "Tool completed with no output."
+            self._bg_tool_completions[tool_name] = (True, str(content))
             self.background_tool_results.append((tool_name, str(content)))
             logger.info(f"\033[36m ✅ [bg] {tool_name} completed\033[0m")
         except Exception as e:
+            self._bg_tool_completions[tool_name] = (False, str(e))
             self.background_tool_results.append((tool_name, f"Error: {str(e)}"))
             logger.info(f"\033[31m ❌ [bg] {tool_name} failed: {str(e)}\033[0m")
+        finally:
+            if tool_name in self._bg_tool_events:
+                self._bg_tool_events[tool_name].set()
 
     def _check_background_completions(self) -> list[tuple[str, str, Optional[str], Optional[str]]]:
         """Scan agent_tasks for newly completed / querying background agents.
@@ -248,25 +284,42 @@ class SupervisorAgent(SuperVisor):
                     msg = f"[BACKGROUND UPDATE] Tool '{tool_name}' has completed. Result: {tool_result}"
                     logger.info(f"\033[35m {msg} \033[0m")
                     self.message_manager.add_human_message(msg)
+                    # Clean up tracking now that the LLM has been notified
+                    self._bg_tool_events.pop(tool_name, None)
+                    self._bg_tool_completions.pop(tool_name, None)
                 # ─────────────────────────────────────────────────────────────
 
                 messages = self.message_manager.get_messages()
 
-                # block 'done' while pending queries OR active background agents
+                # block 'done' while pending queries, background agents, or background tools
                 active_bg_agents = [n for n, ctx in self.agent_tasks.items() if ctx.is_background]
-                if active_bg_agents:
+                active_bg_tools = [n for n, evt in self._bg_tool_events.items() if not evt.is_set()]
+
+                if active_bg_agents or active_bg_tools:
                     # inject a transient status reminder at every step (NOT persisted to history)
-                    # so the LLM always has up-to-date context about what is still running
+                    parts = []
+                    if active_bg_agents:
+                        parts.append(
+                            f"Agents still running: {active_bg_agents} — "
+                            f"use 'wait_for_agent' tool to retrieve."
+                        )
+                    if active_bg_tools:
+                        parts.append(
+                            f"Tools still running: {active_bg_tools} — "
+                            f"use 'wait_for_tool' tool to retrieve."
+                        )
                     reminder = (
-                        f"[SYSTEM STATUS] Background agent(s) still running: {active_bg_agents}. "
-                        f"These tasks are NOT complete. Do NOT re-launch them. "
-                        f"Use the 'wait_for_agent' tool to retrieve their result when ready. "
-                        f"Do NOT call 'done' until all background agents are retrieved."
+                        f"[SYSTEM STATUS] Background tasks NOT yet complete. "
+                        + " ".join(parts)
+                        + " Do NOT re-launch them. Do NOT call 'done' until all results are retrieved."
                     )
                     messages = messages + [HumanMessage(content=reminder)]
-                    logger.info(f"\033[33m ⏳ Waiting for background agents: {active_bg_agents} — 'done' blocked\033[0m")
+                    if active_bg_agents:
+                        logger.info(f"\033[33m ⏳ Waiting for background agents: {active_bg_agents} — 'done' blocked\033[0m")
+                    if active_bg_tools:
+                        logger.info(f"\033[33m ⏳ Waiting for background tools: {active_bg_tools} — 'done' blocked\033[0m")
 
-                response_model = self.AgentOutput if (not self.pending_queries and not active_bg_agents) else self.AgentOutputWithoutDone
+                response_model = self.AgentOutput if (not self.pending_queries and not active_bg_agents and not active_bg_tools) else self.AgentOutputWithoutDone
 
                 next_action:AgentOutput = await self.get_structured_response(messages, response_model)
 
@@ -399,10 +452,12 @@ class SupervisorAgent(SuperVisor):
                             await hook.func(self)
 
                         if should_tool_bg:
+                            self._bg_tool_events[tool_name] = asyncio.Event()
                             asyncio.create_task(self.run_background_tool(tool_name, tool_model))
                             bg_msg = (
-                                f"Tool '{tool_name}' started in background. "
-                                f"You will be notified when it completes."
+                                f"Tool '{tool_name}' is running in background and is NOT yet complete. "
+                                f"Use 'wait_for_tool' with tool_name='{tool_name}' if you need its result. "
+                                f"You will also be notified automatically when it finishes."
                             )
                             logger.info(f"\033[2m    ↳ started in background\033[0m")
                             self.message_manager.add_tool_message(bg_msg, tool_name, tool_call_id)
