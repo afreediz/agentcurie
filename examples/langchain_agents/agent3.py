@@ -9,6 +9,8 @@ from langchain_openai import ChatOpenAI
 from examples.env import config
 from agentcurie import BaseAgent
 import asyncio
+import logging
+logger = logging.getLogger(__name__)
 
 @tool
 def find_recipe(operation: str, num1: float, num2: float) -> str:
@@ -39,9 +41,9 @@ class SheffAgent(BaseAgent):
 
 
     async def process(self, message: str) -> str:
-        print("Cook called ----")
-        await asyncio.sleep(30)
-        print("Cook completed ----")
+        print("\n\nCook called ----\n\n")
+        await asyncio.sleep(50)
+        print("\n\nCook completed ----\n\n")
         return "Cooked and served to the table"
 
 

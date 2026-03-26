@@ -186,11 +186,9 @@ class MessageManager:
 		# debug which messages are in history with token count # log
 
 		total_input_tokens = 0
-		logger.info(f'Messages in history: {len(self.history.messages)}:')
 		for m in self.history.messages:
 			total_input_tokens += m.metadata.input_tokens
-
-		logger.info(f'Total input tokens: {total_input_tokens}')
+		logger.debug(f'msgs:{len(self.history.messages)} │ tokens:{total_input_tokens}')
 
 		return msg
 	

@@ -188,10 +188,10 @@ class SupervisorAgent(SuperVisor):
             result = await self.controller.execute_tool(tool_model)
             content = result.content if result.content is not None else "Tool completed with no output."
             self.background_tool_results.append((tool_name, str(content)))
-            logger.info(f"\033[36m Background tool '{tool_name}' completed \033[0m")
+            logger.info(f"\033[36m ✅ [bg] {tool_name} completed\033[0m")
         except Exception as e:
             self.background_tool_results.append((tool_name, f"Error: {str(e)}"))
-            logger.info(f"Background tool '{tool_name}' failed: {str(e)}")
+            logger.info(f"\033[31m ❌ [bg] {tool_name} failed: {str(e)}\033[0m")
 
     def _check_background_completions(self) -> list[tuple[str, str, Optional[str], Optional[str]]]:
         """Scan agent_tasks for newly completed / querying background agents.
@@ -224,8 +224,9 @@ class SupervisorAgent(SuperVisor):
 
             step = 1
             while True:
-                logger.info(f"Task : {task}")
-                logger.info(f"🪜 Step : {step}")
+                msg_count = len(self.message_manager.history.messages)
+                token_count = self.message_manager.history.total_tokens
+                logger.info(f"\033[1m\033[34m{'─' * 6} Step {step} │ msgs:{msg_count} │ tokens:{token_count} {'─' * 6}\033[0m")
 
                 # ── Inject background-completion notifications ─────────────────
                 for agent_name, event_type, result, extra in self._check_background_completions():
@@ -252,12 +253,14 @@ class SupervisorAgent(SuperVisor):
 
                 # get response model, also avoiding task completion when there is pending queries
                 response_model = self.AgentOutput if not self.pending_queries else self.AgentOutputWithoutDone
-                logger.info(f"Using response model {response_model}")
+                logger.debug(f"Using response model {response_model}")
 
                 next_action:AgentOutput = await self.get_structured_response(messages, response_model)
 
                 self.message_manager.add_choice(next_action)
-                logger.info(f"\033[32m 🔍{next_action.evaluation_previous_goal} \n📝{next_action.memory} \n💡{next_action.next_goal} \033[0m")
+                logger.info(f"\033[32m 🔍 {next_action.evaluation_previous_goal}\033[0m")
+                logger.info(f"\033[2m 📝 {next_action.memory}\033[0m")
+                logger.info(f"\033[33m 💡 {next_action.next_goal}\033[0m")
 
                 choice = next_action.action.choice  # ToolsAction | AgentAction
 
@@ -281,7 +284,7 @@ class SupervisorAgent(SuperVisor):
                         self.agent_tasks[agent_name].result = agent_task
                         self.agent_tasks[agent_name].status = AgentStatus.QUERY_PROCESSED
                         self._query_events[agent_name].set()
-                        logger.info(f"\033[32m Responded to pending query \n{agent_name}:{pending_query}? \nanswer:{agent_task} \033[0m")
+                        logger.info(f"\033[32m 📨 {agent_name} ← '{agent_task}' (answering: '{pending_query}')\033[0m")
 
                         if self.agent_tasks[agent_name].is_background:
                             # Background agent: don't wait — it will continue on its own
@@ -298,7 +301,7 @@ class SupervisorAgent(SuperVisor):
 
                             if status in (AgentStatus.COMPLETED, AgentStatus.ERROR):
                                 message = f"Result from agent - {agent_name}: {res}"
-                                logger.info(f"\033[36m {message} \033[0m")
+                                logger.info(f"\033[32m ✅ {agent_name}: {res}\033[0m")
                                 self.message_manager.add_response(next_action, message)
                                 for hook in self.agent_hooks_after:
                                     await hook.func(self.controller.agents_controller.registry.get_agent_instance(hook.agent_name), self)
@@ -306,7 +309,7 @@ class SupervisorAgent(SuperVisor):
                             elif status == AgentStatus.WAITING_FOR_QUERY:
                                 self.agent_tasks[agent_name].status = AgentStatus.QUERY_INTERCEPTED
                                 message = f"While processing request, agent {agent_name} has a query: {self.agent_tasks[agent_name].query}"
-                                logger.info(f"\033[36m {message} \033[0m")
+                                logger.info(f"\033[33m 💬 {agent_name} asks: {self.agent_tasks[agent_name].query}\033[0m")
                                 self.message_manager.add_response(next_action, message)
 
                     else:
@@ -321,7 +324,8 @@ class SupervisorAgent(SuperVisor):
                         for hook in self.agent_hooks_before:
                             await hook.func(self.controller.agents_controller.registry.get_agent_instance(hook.agent_name), self)
 
-                        logger.info(f"\033[32m Calling agent : {agent_name} - assigning task : '{agent_task}' (background={should_bg}) \033[0m")
+                        bg_tag = " [bg]" if should_bg else ""
+                        logger.info(f"\033[35m 🤖 {agent_name}{bg_tag} ← '{agent_task}'\033[0m")
                         asyncio.create_task(self.run_child_agent_with_context(agent_name, agent_model))
 
                         if should_bg:
@@ -332,7 +336,7 @@ class SupervisorAgent(SuperVisor):
                                 f"You will be notified when it completes. "
                                 f"Use the wait_for_agent tool if you need to block on its result."
                             )
-                            logger.info(f"\033[35m {message} \033[0m")
+                            logger.info(f"\033[2m    ↳ started in background\033[0m")
                             self.message_manager.add_response(next_action, message)
                         else:
                             # Wait for the agent to reach COMPLETED / ERROR / WAITING_FOR_QUERY
@@ -342,7 +346,7 @@ class SupervisorAgent(SuperVisor):
 
                             if status in (AgentStatus.COMPLETED, AgentStatus.ERROR):
                                 message = f"Result from agent - {agent_name}: {res}"
-                                logger.info(f"\033[36m {message} \033[0m")
+                                logger.info(f"\033[32m ✅ {agent_name}: {res}\033[0m")
                                 self.message_manager.add_response(next_action, message)
                                 for hook in self.agent_hooks_after:
                                     await hook.func(self.controller.agents_controller.registry.get_agent_instance(hook.agent_name), self)
@@ -350,7 +354,7 @@ class SupervisorAgent(SuperVisor):
                             elif status == AgentStatus.WAITING_FOR_QUERY:
                                 self.agent_tasks[agent_name].status = AgentStatus.QUERY_INTERCEPTED
                                 message = f"While processing request, agent {agent_name} has a query: {self.agent_tasks[agent_name].query}"
-                                logger.info(f"\033[36m {message} \033[0m")
+                                logger.info(f"\033[33m 💬 {agent_name} asks: {self.agent_tasks[agent_name].query}\033[0m")
                                 self.message_manager.add_response(next_action, message)
 
                 elif isinstance(choice, ToolsAction):
@@ -364,7 +368,8 @@ class SupervisorAgent(SuperVisor):
                         tool_bg_capable = bool(registered_tool and registered_tool.background_runnable)
                         should_tool_bg = run_tool_in_bg and tool_bg_capable
 
-                        logger.info(f"\033[32m Calling tool : {tool_name} - params: {params} (background={should_tool_bg}) \033[0m")
+                        bg_tag = " [bg]" if should_tool_bg else ""
+                        logger.info(f"\033[36m 🔧 {tool_name}{bg_tag} ← {params}\033[0m")
 
                         for hook in self.func_hooks_before:
                             await hook.func(self)
@@ -375,7 +380,7 @@ class SupervisorAgent(SuperVisor):
                                 f"Tool '{tool_name}' started in background. "
                                 f"You will be notified when it completes."
                             )
-                            logger.info(f"\033[35m {bg_msg} \033[0m")
+                            logger.info(f"\033[2m    ↳ started in background\033[0m")
                             self.message_manager.add_tool_message(bg_msg, tool_name)
                             result = None  # no synchronous result
                         else:
@@ -386,14 +391,13 @@ class SupervisorAgent(SuperVisor):
                         for hook in self.func_hooks_after:
                             await hook.func(self)
 
-                        logger.info(f"\033[36m Result from tool - {tool_name} : {result.content if result else '(running in background)'} \033[0m")
+                        logger.info(f"\033[32m    ↳ {result.content if result else '(running in background)'}\033[0m")
 
                         if result and result.is_done:
                             break
 
                     if result and result.is_done:
-                        logger.info(f"\n\nCompleted!, {result.content}")
-                        logger.info(f"total tokens: {self.message_manager.history.total_tokens}")
+                        logger.info(f"\033[1m\033[32m ✅ DONE — {result.content} │ total tokens: {self.message_manager.history.total_tokens}\033[0m")
                         break
 
                 step += 1

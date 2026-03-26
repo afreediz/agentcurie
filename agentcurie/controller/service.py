@@ -73,7 +73,7 @@ class Controller():
 
     async def execute_tool(self, choice:ToolModel) -> ChoiceResult:
         try:
-            logger.info(f'trying to execute tool : {choice}, {type(choice)}')
+            logger.debug(f'trying to execute tool : {choice}, {type(choice)}')
             res = await self.tools_controller.act(choice)
             return ChoiceResult(content=res.content, is_done=res.is_done, success=res.success, error=res.error) #type:ignore
         except Exception as e:
