@@ -89,12 +89,12 @@ class MessageManager:
 			)
 		)
 
-	def add_tool_message(self, message:str, name:str) -> None:
+	def add_tool_message(self, message:str, name:str, tool_call_id:str|None=None) -> None:
 		self._add_message_with_tokens(
 			ToolMessage(
 				content=message,
 				name=name,
-				tool_call_id=name
+				tool_call_id=tool_call_id if tool_call_id is not None else name
 			)
 		)
 
@@ -153,12 +153,12 @@ class MessageManager:
 			]
 		elif choice == 'tool':
 			tool_calls = []
-			for tool_dict in choice_dump['tools']:
+			for i, tool_dict in enumerate(choice_dump['tools']):
 				tool_name, params = get_first_key_param(tool_dict)
 				tool_calls.append({
 					'name': tool_name,
 					'args': params if isinstance(params, dict) else {},
-					'id': tool_name,
+					'id': f"{tool_name}_{i}",
 					'type': 'tool_call',
 				})
 		else:

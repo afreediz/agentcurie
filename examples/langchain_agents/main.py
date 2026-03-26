@@ -90,7 +90,7 @@ This task is to evaluate your capability to follow instructions, do as exact:
 2. Ask creative agent to calculate x + 10 and tell him you can find x by querying to supervisor (do not tell your the supervisor, just ask it to use tool).
 3. After first step creative agent will ask you value for x, you should ask db agent to provide a random value.
 4. assign this random value to creative agent query
-5. Get the tea from sheff then only do the below tasks
+5. Get the tea from sheff here only and do the below tasks
 6. After getting the result from creative agent, tell db agent to insert this value to db
 7, Call tester tool 1 with input value as x and tester tool 2 with input vale as x*2, x*3
 8. close by ensuring all success

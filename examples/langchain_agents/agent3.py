@@ -42,7 +42,7 @@ class SheffAgent(BaseAgent):
 
     async def process(self, message: str) -> str:
         print("\n\nCook called ----\n\n")
-        await asyncio.sleep(50)
+        await asyncio.sleep(10)
         print("\n\nCook completed ----\n\n")
         return "Cooked and served to the table"
 

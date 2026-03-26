@@ -4,6 +4,7 @@ from .prompts import SystemPrompt
 from .utils import get_first_key_param
 from .views import AgentResult, AgentContext, AgentStatus, FuncHook, AgentHook
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import HumanMessage
 from typing import Type, TypeVar, Optional
 from pydantic import BaseModel
 from typing import Dict
@@ -251,9 +252,21 @@ class SupervisorAgent(SuperVisor):
 
                 messages = self.message_manager.get_messages()
 
-                # get response model, also avoiding task completion when there is pending queries
-                response_model = self.AgentOutput if not self.pending_queries else self.AgentOutputWithoutDone
-                logger.debug(f"Using response model {response_model}")
+                # block 'done' while pending queries OR active background agents
+                active_bg_agents = [n for n, ctx in self.agent_tasks.items() if ctx.is_background]
+                if active_bg_agents:
+                    # inject a transient status reminder at every step (NOT persisted to history)
+                    # so the LLM always has up-to-date context about what is still running
+                    reminder = (
+                        f"[SYSTEM STATUS] Background agent(s) still running: {active_bg_agents}. "
+                        f"These tasks are NOT complete. Do NOT re-launch them. "
+                        f"Use the 'wait_for_agent' tool to retrieve their result when ready. "
+                        f"Do NOT call 'done' until all background agents are retrieved."
+                    )
+                    messages = messages + [HumanMessage(content=reminder)]
+                    logger.info(f"\033[33m ⏳ Waiting for background agents: {active_bg_agents} — 'done' blocked\033[0m")
+
+                response_model = self.AgentOutput if (not self.pending_queries and not active_bg_agents) else self.AgentOutputWithoutDone
 
                 next_action:AgentOutput = await self.get_structured_response(messages, response_model)
 
@@ -312,6 +325,16 @@ class SupervisorAgent(SuperVisor):
                                 logger.info(f"\033[33m 💬 {agent_name} asks: {self.agent_tasks[agent_name].query}\033[0m")
                                 self.message_manager.add_response(next_action, message)
 
+                    elif agent_name in self.agent_tasks and self.agent_tasks[agent_name].is_background:
+                        # ── Already running in background — block re-launch ────────────
+                        message = (
+                            f"Agent '{agent_name}' is already running in the background. "
+                            f"Do NOT call it again. Use the 'wait_for_agent' tool with "
+                            f"agent_name='{agent_name}' to block until it finishes."
+                        )
+                        logger.info(f"\033[33m ⚠️  {agent_name} already running in background — re-launch blocked\033[0m")
+                        self.message_manager.add_response(next_action, message)
+
                     else:
                         # ── New agent invocation ───────────────────────────────────────
                         self.agent_tasks[agent_name] = AgentContext(
@@ -358,10 +381,11 @@ class SupervisorAgent(SuperVisor):
                                 self.message_manager.add_response(next_action, message)
 
                 elif isinstance(choice, ToolsAction):
-                    for tool_model in choice.tools:
+                    for i, tool_model in enumerate(choice.tools):
                         dump = tool_model.model_dump()
                         run_tool_in_bg = dump.get('run_in_background', False)
                         tool_name, params = get_first_key_param(dump)
+                        tool_call_id = f"{tool_name}_{i}"
 
                         # Validate background capability against registry
                         registered_tool = self.controller.tools_controller.registry.registry.tools.get(tool_name)
@@ -381,12 +405,12 @@ class SupervisorAgent(SuperVisor):
                                 f"You will be notified when it completes."
                             )
                             logger.info(f"\033[2m    ↳ started in background\033[0m")
-                            self.message_manager.add_tool_message(bg_msg, tool_name)
+                            self.message_manager.add_tool_message(bg_msg, tool_name, tool_call_id)
                             result = None  # no synchronous result
                         else:
                             result = await self.controller.execute_tool(tool_model)
                             assert isinstance(result.content, str)
-                            self.message_manager.add_tool_message(result.content, tool_name)
+                            self.message_manager.add_tool_message(result.content, tool_name, tool_call_id)
 
                         for hook in self.func_hooks_after:
                             await hook.func(self)
