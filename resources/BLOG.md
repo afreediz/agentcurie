@@ -95,6 +95,16 @@ supervisor.register_agent(agent_card=card, agent_class=DBAgent)
 result = await supervisor.solve("Store today's sales figures, then write a poem about them")
 ```
 
+Need to give the supervisor domain knowledge or a house style? Pass `extended_system_prompt` at construction — your text is woven directly into the supervisor's base prompt, so you add rules, tone, or constraints without rewriting the orchestration logic:
+
+```python
+supervisor = SupervisorAgent(
+    llm=llm,
+    extended_system_prompt="You operate in a finance context. Never expose raw PII; "
+                           "always confirm a write succeeded before reporting numbers."
+)
+```
+
 That's it. The supervisor decomposes the task, routes "store the figures" to the database agent and "write a poem" to the creative agent, threads the results together, and returns a final answer. **You never wrote the orchestration logic.** You described capabilities and stated a goal.
 
 Now let's open the hood — because *how* it does this is the interesting part.
